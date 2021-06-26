@@ -50,9 +50,9 @@ test:
     - sed -i "1s:/usr/bin/python3:/usr/bin/env python3:" test/apt-cache
     - sed -i "1s:/usr/bin/python3:/usr/bin/env python3:" test/dpkg-query
     # Fix problematic encoding in CPython 3.6 and PyPy 3.7 regarding test/apt-cache output
-    - export PYTHONIOENCODING=utf-8:surrogateescape
+    - sed -i 's:import sys:import sys\nimport codecs\nsys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach()):' test/apt-cache
     # Alternative fix
-    # - sed -i 's:import sys:import sys\nimport codecs\nsys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach()):' test/apt-cache
+    # - export PYTHONIOENCODING=utf-8:surrogateescape
     # Run the tests.
     - python test/test_lsb_release.py
     # Test the raw command
