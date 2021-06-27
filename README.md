@@ -11,14 +11,51 @@ Summary: LSB release detection module for Debian
 
 Development: https://salsa.debian.org/debian/lsb
 
-This conda package provides the `lsb_release` command for
-Debian-based Linux distributions such as Debian and Ubuntu. The Debian-based
+
+This conda package provides the `lsb_release` command for Debian-based Linux
+distributions such as Debian and Ubuntu. It provides a simple command-line interface
+for accessing metadata about the installed Linux distribution.
+
+
+Installation instructions for many Linux programs rely on the `lsb_release` command
+to detect the release number and/or codename of the installed Linux distribution.
+For example, as of the time of writing,
+[PostgreSQL](https://www.postgresql.org/download/linux/ubuntu/) uses
+the `lsb_release -cs` command to detect the proper codename for the apt repository.
+
+The Debian-based
 [lsb-release package](https://packages.debian.org/stable/lsb-release)
-unfortunately depends on a system-wide installation of python3. This conda
-package avoids the need for a system-wide installation of python3 when one
-already has a conda installation. The distribution-specific data is comes from
-a tiny system package named [distro-info-data](https://packages.debian.org/stable/distro-info-data),
-which can be installed with `sudo apt-get install -y distro-info-data`.
+unfortunately depends on a system-wide installation of `python3`. This conda
+package avoids the need for a system-wide installation of `python3` when a conda
+environment is already available. The distribution-specific data is comes from
+a tiny system package named
+[distro-info-data](https://packages.debian.org/stable/distro-info-data),
+which can be installed with `apt-get install -y distro-info-data`.
+
+
+Bash:
+```bash
+sudo apt-get install -y distro-info-data
+mamba install -y lsb-release
+lsb_release -a
+```
+
+(Substitute `conda` for `mamba` above in case you use that instead.)
+
+Docker:
+```dockerfile
+FROM condaforge/mambaforge:4.10.1-0
+
+RUN : \
+    && apt-get update \
+    && apt-get install -y distro-info-data \
+    && rm -rf /var/lib/apt/lists/* \
+    && mamba install -y lsb-release \
+    && conda clean -afy \
+;
+
+RUN lsb_release -a
+```
 
 
 Current build status
