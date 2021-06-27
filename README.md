@@ -11,11 +11,15 @@ Summary: LSB release detection module for Debian
 
 Development: https://salsa.debian.org/debian/lsb
 
+Intro
+-----
 
 This conda package provides the `lsb_release` command for Debian-based Linux
 distributions such as Debian and Ubuntu. It provides a simple command-line interface
 for accessing metadata about the installed Linux distribution.
 
+Motivation
+----------
 
 Installation instructions for many Linux programs rely on the `lsb_release` command
 to detect the release number and/or codename of the installed Linux distribution.
@@ -32,6 +36,8 @@ a tiny system package named
 [distro-info-data](https://packages.debian.org/stable/distro-info-data),
 which can be installed with `apt-get install -y distro-info-data`.
 
+Examples
+--------
 
 Bash:
 ```bash
