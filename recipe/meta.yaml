@@ -8,28 +8,36 @@ package:
 source:
   url: https://salsa.debian.org/debian/lsb/-/archive/debian/{{ version }}/{{ name }}-{{ version }}.tar.gz
   sha256: c8a7e2bbabca87301cf259339c532d67f1760ed0d8611ffe986e82a253e6e6a9
+  patches:
+    - patches/handle-missing-distro-info-data.patch
 
 build:
-  number: 0
+  number: 1
   skip: true  # [not linux]
   script:
-    # Substitute prefix in shebang.
+    # Use the sed command to substitute the current conda prefix into the shebang.
+    # (On conda install, all occurences of this prefix will be automatically replaced
+    # with the prefix of the active environment.)
+    # Explanation of the sed command:
     #   1s
-    #     search/replace on first string
+    #     perform search/replace on first line
     #   :
-    #     search/replace delimiter, usually / but not necessarily
+    #     search/replace delimiter, typically '/' but we use ':' to avoid conflicts.
     #   ${PREFIX//:/\:}
-    #     $PREFIX, but with any occurences of : escaped to \:
-    #
-    # On conda install, the prefix is automatically adapted to the active environment.
+    #     value of the $PREFIX variable, but with any occurences of : escaped to \:
     - sed -i "1s:/usr/bin:${PREFIX//:/\:}/bin:" lsb_release
     - sed -i "1s:/usr/bin:${PREFIX//:/\:}/bin:" lsb_release.py
+
     # Remove the -E and -s options to python3
-    # (for original motivation, see https://salsa.debian.org/debian/lsb/-/commit/3ef4021 )
+    # For original motivation, see <https://salsa.debian.org/debian/lsb/-/commit/3ef4021>.
+    # This seems to be no big deal, and anyways, it's impossible to leave them in due to
+    # this problem with conda: <https://github.com/conda/conda/pull/10727>.
     - sed -i "1s:python3 -Es:python3:" lsb_release
-    # Copy the command-line script.
+
+    # Copy the command-line script into bin/ for packaging.
     - cp lsb_release "${PREFIX}/bin"
-    # Copy the python module.
+
+    # Copy the python module into the site-packages directory for packaging.
     - cp lsb_release.py "${SP_DIR}"
 
 requirements:
@@ -41,22 +49,28 @@ requirements:
 test:
   commands:
     # Without having distro-info-data installed, importing lsb_release fails.
-    # Edit the source code to replace the hard-coded debian.csv with our mock.
+    # For testing, edit the source code to replace the hard-coded debian.csv with our mock.
     - >
       sed -i "s|/usr/share/distro-info/debian.csv|$(pwd)/mock-debian.csv|; s|/usr/share/distro-info|$(pwd)|"
       $(python -c 'import importlib.util; print(importlib.util.find_spec("lsb_release").origin)')
+
     # Prepare to run tests; enable mock apt-cache command, etc.
     - export PATH=${PWD}/test:${PATH}
     - sed -i "1s:/usr/bin/python3:/usr/bin/env python3:" test/apt-cache
     - sed -i "1s:/usr/bin/python3:/usr/bin/env python3:" test/dpkg-query
-    # Fix problematic encoding in CPython 3.6 and PyPy 3.7 regarding test/apt-cache output
+
+    # Fix problematic encoding in CPython 3.6 and PyPy 3.7 regarding output of `test/apt-cache`
     - sed -i 's:import sys:import sys\nimport codecs\nsys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach()):' test/apt-cache
-    # Alternative fix
+    # Alternative fix:
     # - export PYTHONIOENCODING=utf-8:surrogateescape
+    # (I disfavor this because it also affects `lsb_release`.)
+
     # Run the tests.
     - python test/test_lsb_release.py
+
     # Test the raw command
     - lsb_release
+
   source_files:
     - test
   files:
@@ -69,14 +83,57 @@ about:
   license_file: debian/copyright
   summary: LSB release detection module for Debian
   description: |
-    This conda package provides the `lsb_release` command for
-    Debian-based Linux distributions such as Debian and Ubuntu. The Debian-based
+    ## Intro
+
+    This conda package provides the `lsb_release` command for Debian-based Linux
+    distributions such as Debian and Ubuntu. It provides a simple command-line interface
+    for accessing metadata about the installed Linux distribution.
+
+    ## Motivation
+
+    Installation instructions for many Linux programs rely on the `lsb_release` command
+    to detect the release number and/or codename of the installed Linux distribution.
+    For example, as of the time of writing,
+    [PostgreSQL](https://www.postgresql.org/download/linux/ubuntu/) uses
+    the `lsb_release -cs` command to detect the proper codename for the apt repository.
+
+    The Debian-based
     [lsb-release package](https://packages.debian.org/stable/lsb-release)
-    unfortunately depends on a system-wide installation of python3. This conda
-    package avoids the need for a system-wide installation of python3 when one
-    already has a conda installation. The distribution-specific data is comes from
-    a tiny system package named [distro-info-data](https://packages.debian.org/stable/distro-info-data),
-    which can be installed with `sudo apt-get install -y distro-info-data`.
+    unfortunately depends on a system-wide installation of `python3`. This conda
+    package avoids the need for a system-wide installation of `python3` when a conda
+    environment is already available. The distribution-specific data is comes from
+    a tiny system package named
+    [distro-info-data](https://packages.debian.org/stable/distro-info-data),
+    which can be installed with `apt-get install -y distro-info-data`.
+
+    ## Examples
+
+    Bash:
+    ```bash
+    sudo apt-get install -y distro-info-data
+    mamba install -y lsb-release
+    lsb_release -a
+    ```
+
+    (Substitute `conda` for `mamba` above in case you use that instead.)
+
+    Docker:
+    ```dockerfile
+    FROM condaforge/mambaforge:4.10.1-0
+
+    RUN : \
+        # Install distro-info-data and clean up.
+        && apt-get update \
+        && apt-get install -y distro-info-data \
+        && rm -rf /var/lib/apt/lists/* \
+        # Install lsb-release and clean up.
+        && mamba install -y lsb-release \
+        && conda clean -afy \
+    ;
+
+    # Print release information.
+    RUN lsb_release -a
+    ```
   dev_url: https://salsa.debian.org/debian/lsb
 
 extra:

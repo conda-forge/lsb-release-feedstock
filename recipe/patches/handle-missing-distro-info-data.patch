@@ -1,0 +1,24 @@
+diff --git a/lsb_release.py b/lsb_release.py
+index c03d036..f144d63 100644
+--- a/lsb_release.py
++++ b/lsb_release.py
+@@ -39,7 +39,18 @@ def get_distro_info(origin='Debian'):
+         csvfile = open('/usr/share/distro-info/%s.csv' % origin.lower())
+     except FileNotFoundException:
+         # Unknown distro, fallback to Debian
+-        csvfile = open('/usr/share/distro-info/debian.csv')
++        try:
++            csvfile = open('/usr/share/distro-info/debian.csv')
++        except FileNotFoundException:
++            # When the ``lsb-release``` package is installed via ``apt-get install``,
++            # the ``distro-info-data`` package is automatically installed as a
++            # dependency. However, when installed with conda, this won't happen
++            # automatically, so the user may forget to install ``distro-info-data``.
++            # Thus we need to gracefully handle this mistake and remind the user.
++            raise RuntimeError(
++                "No distro-info found in '/usr/share/distro-info/'. Please run:\n\n"
++                "    apt-get install distro-info-data\n"
++            )
+
+     reader = csv.DictReader(csvfile)
+     global RELEASE_CODENAME_LOOKUP, RELEASES_ORDER, TESTING_CODENAME
