@@ -12,7 +12,7 @@ source:
     - patches/handle-missing-distro-info-data.patch
 
 build:
-  number: 3
+  number: 4
   skip: true  # [not linux]
   script:
     # Use the sed command to substitute the current conda prefix into the shebang.
