@@ -12,8 +12,8 @@ source:
     - patches/handle-missing-distro-info-data.patch
 
 build:
-  number: 3
-  skip: true  # [not linux]
+  noarch: python
+  number: 4
   script:
     # Use the sed command to substitute the current conda prefix into the shebang.
     # (On conda install, all occurences of this prefix will be automatically replaced
@@ -42,9 +42,9 @@ build:
 
 requirements:
   host:
-    - python
+    - python >=3.6
   run:
-    - python
+    - python >=3.6
 
 test:
   commands:
