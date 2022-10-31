@@ -12,6 +12,7 @@ source:
     - patches/handle-missing-distro-info-data.patch
 
 build:
+  noarch: python
   number: 3
   skip: true  # [not linux]
   script:
