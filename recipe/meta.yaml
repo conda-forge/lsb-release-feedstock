@@ -14,7 +14,6 @@ source:
 build:
   noarch: python
   number: 3
-  skip: true  # [not linux]
   script:
     # Use the sed command to substitute the current conda prefix into the shebang.
     # (On conda install, all occurences of this prefix will be automatically replaced
