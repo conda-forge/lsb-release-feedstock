@@ -1,11 +1,11 @@
-About lsb-release
-=================
+About lsb-release-feedstock
+===========================
+
+Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/lsb-release-feedstock/blob/main/LICENSE.txt)
 
 Home: https://wiki.linuxfoundation.org/lsb/start
 
 Package license: GPL-2.0-only
-
-Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/lsb-release-feedstock/blob/main/LICENSE.txt)
 
 Summary: LSB release detection module for Debian
 
@@ -53,12 +53,15 @@ Docker:
 FROM condaforge/mambaforge:4.10.1-0
 
 RUN : \
+
     && apt-get update \
     && apt-get install -y distro-info-data \
     && rm -rf /var/lib/apt/lists/* \
+
     && mamba install -y lsb-release \
     && conda clean -afy \
 ;
+
 
 RUN lsb_release -a
 ```
@@ -150,7 +153,7 @@ available continuous integration services. Thanks to the awesome service provide
 [CircleCI](https://circleci.com/), [AppVeyor](https://www.appveyor.com/),
 [Drone](https://cloud.drone.io/welcome), and [TravisCI](https://travis-ci.com/)
 it is possible to build and upload installable packages to the
-[conda-forge](https://anaconda.org/conda-forge) [Anaconda-Cloud](https://anaconda.org/)
+[conda-forge](https://anaconda.org/conda-forge) [anaconda.org](https://anaconda.org/)
 channel for Linux, Windows and OSX respectively.
 
 To manage the continuous integration and simplify feedstock maintenance
