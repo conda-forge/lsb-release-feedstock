@@ -1,5 +1,5 @@
 {% set name = "lsb-release" %}
-{% set version = "11.1.0" %}
+{% set version = "11.6" %}
 
 package:
   name: {{ name|lower }}
@@ -7,13 +7,13 @@ package:
 
 source:
   url: https://salsa.debian.org/debian/lsb/-/archive/debian/{{ version }}/{{ name }}-{{ version }}.tar.gz
-  sha256: c8a7e2bbabca87301cf259339c532d67f1760ed0d8611ffe986e82a253e6e6a9
+  sha256: d04f046056994ad32f05a083465f50cf6d370cfad5ec26b6958cfe7cfb167fe6
   patches:
     - patches/handle-missing-distro-info-data.patch
 
 build:
   noarch: python
-  number: 5
+  number: 0
   script:
     # Use the sed command to substitute the current conda prefix into the shebang.
     # (On conda install, all occurences of this prefix will be automatically replaced
@@ -53,8 +53,7 @@ test:
     # Without having distro-info-data installed, importing lsb_release fails.
     # For testing, edit the source code to replace the hard-coded debian.csv with our mock.
     - >
-      sed -i "s|/usr/share/distro-info/debian.csv|$(pwd)/mock-debian.csv|; s|/usr/share/distro-info|$(pwd)|"
-      $(python -c 'import importlib.util; print(importlib.util.find_spec("lsb_release").origin)')
+      sed -i "s|/usr/share/distro-info/debian.csv|$(pwd)/mock-debian.csv|; s|/usr/share/distro-info|$(pwd)|" $(python -c 'import importlib.util; print(importlib.util.find_spec("lsb_release").origin)')
 
     # Prepare to run tests; enable mock apt-cache command, etc.
     - export PATH=${PWD}/test:${PATH}
